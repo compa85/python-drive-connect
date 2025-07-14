@@ -14,7 +14,7 @@ SCOPES = [
   "https://www.googleapis.com/auth/drive",
   'https://www.googleapis.com/auth/admin.directory.user.readonly'
 ]
-# Percorso al file delle credenziali
+# Percorso al file delle credenziali https://developers.google.com/people/quickstart/python?hl=it#authorize_credentials_for_a_desktop_application
 CREDENTIALS_FILE = "credentials.json"
 
 

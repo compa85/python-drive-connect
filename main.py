@@ -48,14 +48,25 @@ def main():
                 drives = utils.get_all_drives(drive_service, True)
                 drives_formatted = []
                 print(f"Drive trovati: {len(drives)}")
-                show_all = input("Vuoi visualizzare tutti i drive? [y/n] ")
-                if show_all == 'y':
+                show_all = input("Vuoi visualizzare o esportare tutti i drive? [v/e] ")
+                if show_all == 'v':
                     print()
                     for drive in drives:
                         id = drive.get('id', 'N/A')
                         name = drive.get('name', 'N/A')
                         drives_formatted.append([id, name])
                     print(tabulate(drives_formatted, headers=['Id', 'Nome'], tablefmt="simple_grid"))
+                    input("\n\nPremi invio per continuare... ")
+                elif show_all == 'e':
+                    file_name = "shared_drives.csv"
+                    with open(file_name, 'w') as file:
+                        file.write("Id,Nome\n")
+                        for drive in drives:
+                            print(drive)
+                            id = drive.get('id', 'N/A')
+                            name = drive.get('name', 'N/A')
+                            file.write(f"{id},{name}\n")
+                    print(f"Drive esportati in {file_name}")
                     input("\n\nPremi invio per continuare... ")
                     
             # Visualizzare i drive condivisi con un utente/gruppo
@@ -172,8 +183,8 @@ def main():
                 users = utils.get_all_users(directory_service)
                 users_formatted = []
                 print(f"Utenti trovati: {len(users)}")
-                show_all = input("Vuoi visualizzare tutti gli utenti? [y/n] ")
-                if show_all == 'y':
+                show_all = input("Vuoi visualizzare o esportare tutti gli utenti? [v/e] ")
+                if show_all == 'v':
                     print()
                     for user in users:
                         id = user.get('id', 'N/A')
@@ -183,6 +194,19 @@ def main():
                         status = 'ATTIVO' if not user.get('suspended', False) else 'SOSPESO'
                         users_formatted.append([id, email, name, is_admin, status])
                     print(tabulate(users_formatted, headers=['Id', 'Email', 'Nome', 'Admin', 'Stato'], tablefmt="simple_grid"))
+                    input("\n\nPremi invio per continuare... ")
+                elif show_all == 'e':
+                    file_name = "users.csv"
+                    with open(file_name, 'w') as file:
+                        file.write("Id,Email,Nome,Admin,Stato\n")
+                        for user in users:
+                            id = user.get('id', 'N/A')
+                            email = user.get('primaryEmail', 'N/A')
+                            name = user.get('name', {}).get('fullName', 'N/A')
+                            is_admin = 'SI' if user.get('isAdmin', False) else 'NO'
+                            status = 'ATTIVO' if not user.get('suspended', False) else 'SOSPESO'
+                            file.write(f"{id},{email},{name},{is_admin},{status}\n")
+                    print(f"Utenti esportati in {file_name}")
                     input("\n\nPremi invio per continuare... ")
                         
             elif main_sel == 8:

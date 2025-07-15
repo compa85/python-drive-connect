@@ -103,7 +103,6 @@ def save_to_file(filename, data):
     """
     with open(filename, 'w') as f:
         json.dump(data, f, indent=4)
-    print(f"File {filename} salvato con successo")
 
 
 def load_from_file(filename):
@@ -112,7 +111,6 @@ def load_from_file(filename):
     """
     if os.path.exists(filename):
         with open(filename, 'r') as f:
-            print(f"Caricamento {filename}...")
             return json.load(f)
     return None
 

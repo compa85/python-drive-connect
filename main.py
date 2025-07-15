@@ -1,9 +1,24 @@
 import utils
+import re
 from tabulate import tabulate
 from tqdm import tqdm
 from simple_term_menu import TerminalMenu
+from prompt_toolkit import PromptSession
+from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.application.current import get_app
+
+
+def prompt_autocomplete():
+    app = get_app()
+    buf = app.current_buffer
+    if buf.complete_state:
+        buf.complete_next()
+    else:
+        buf.start_completion(select_first=False)
+
 
 def main():
+    session = PromptSession()
     main_menu_title = "  PYTHON DRIVE CONNECT\n  Premi Q o Esc per uscire \n"
     main_menu_items = [
         "[0] Ricarica dati",
@@ -87,7 +102,19 @@ def main():
                     
             # Visualizzare i permessi di un drive condiviso
             elif main_sel == 3:
-                drive_id = input("Inserisci l'ID del drive condiviso: ")
+                shared_drives = utils.get_all_drives(drive_service, True)
+                display_names = [f"{d['name']} [{d['id']}]" for d in shared_drives]
+                shared_drive_completer = WordCompleter(display_names, ignore_case=True)
+                shared_drive_name = session.prompt("Inserisci il nome del drive condiviso: ", completer=shared_drive_completer, complete_while_typing=True)
+                # Estrarre l'ID del drive condiviso
+                drive_id = None
+                matches = re.findall(r'\[.*?\]', shared_drive_name)
+                if matches:
+                    drive_id = matches[-1].strip('[]')
+                if not drive_id:
+                    print("ID del drive condiviso non trovato.")
+                    input("\n\nPremi invio per continuare... ")
+                    continue
                 permissions = utils.get_drive_permissions(drive_service, drive_id)
                 permissions_formatted = []
                 print()
@@ -132,9 +159,8 @@ def main():
             elif main_sel == 6:
                 new_permissions = []
                 num_permissions = input("Quanti permessi vuoi aggiungere? ")
-                utils.clear()
                 for i in range(int(num_permissions)):
-                    print(f"{i+1}^ permesso\n")
+                    print(f"\n{i+1}^ permesso")
                     email = input("Inserisci l'email dell'utente/gruppo: ")
                     type = input("Inserisci il tipo di permesso: [user/group] ")
                     role = input("Inserisci il ruolo: [organizer/fileOrganizer/writer/commenter/reader] ")
@@ -143,22 +169,31 @@ def main():
                         role = input("Inserisci il ruolo: [organizer/fileOrganizer/writer/commenter/reader] ")
                         continue
                     new_permissions.append({"email": email, "type": type, "role": role})
-                    utils.clear()
-                
-                drives_affected = input("Quanti drive vuoi aggiornare? [1/2/.../all] ")
                 print()
+                drives_affected = input("Quanti drive vuoi aggiornare? [1/2/.../all] ")
                 drives = []
                 if drives_affected == "all":
                     drives_exclusion = input("Vuoi escludere determinati drive? [y/n] ")
-                    print()
                     if drives_exclusion == 'y':
                         excluded_drives = []
-                        while True:
-                            excluded_drive = input("Inserisci l'ID di drive da escludere (o premi invio per terminare): ")
-                            if not excluded_drive:
-                                break
-                            excluded_drives.append(excluded_drive)
                         drives = utils.get_all_drives(drive_service, True)
+                        display_names = [f"{d['name']} [{d['id']}]" for d in drives]
+                        shared_drive_completer = WordCompleter(display_names, ignore_case=True)
+                        print()
+                        while True:
+                            excluded_drive_name = session.prompt("Inserisci il nome del drive condiviso: ", completer=shared_drive_completer, complete_while_typing=True)
+                            if not excluded_drive_name:
+                                break
+                            # Estrarre l'ID del drive condiviso
+                            drive_id = None
+                            matches = re.findall(r'\[.*?\]', excluded_drive_name)
+                            if matches:
+                                drive_id = matches[-1].strip('[]')
+                            if not drive_id:
+                                print("ID del drive condiviso non trovato.")
+                                input("\n\nPremi invio per continuare... ")
+                                continue
+                            excluded_drives.append(drive_id)
                         drives = [drive for drive in drives if drive['id'] not in excluded_drives]
                     else:
                         drives = utils.get_all_drives(drive_service, True)
@@ -167,7 +202,6 @@ def main():
                         drive_id = input(f"Inserisci l'ID del {i+1}^ drive: ")
                         drives.append({"id": drive_id})
                 print()
-                print(drives)
                 if input(f"Sei sicuro di voler aggiornare i permessi di {len(drives)} drive? [y/n] ") == 'y':
                     for drive in tqdm(drives):
                         drive_id = drive.get('id', 'N/A')

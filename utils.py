@@ -223,6 +223,19 @@ def delete_drive_permission(drive_service, drive_id, permission_id):
     except Exception as e:
         return False
     
+
+def get_files_in_folder(drive_service, folderId):
+    """
+    Ottenere tutti i file presenti in una cartella
+    """
+    files = []
+    request = drive_service.files().list(q=f"'{folderId}' in parents and trashed=false", spaces="drive", fields="nextPageToken, files(id, name)", includeTeamDriveItems=True, supportsAllDrives=True)
+    while request is not None:
+        response = request.execute()
+        files.extend(response.get('files', []))
+        request = drive_service.files().list_next(previous_request=request, previous_response=response)
+    return files
+    
   
 def get_all_users(directory_service):
     """

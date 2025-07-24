@@ -23,14 +23,15 @@ def main():
     main_menu_items = [
         "[0] Ricarica dati",
         "[1] Visualizza i Drive condivisi",
-        "[2] Visualizza i Drive condivisi con un utente/gruppo",
-        "[3] Visualizza i permessi di un Drive condiviso",
-        "[4] Aggiungi un permesso a un Drive condiviso",
-        "[5] Rimuovi un permesso a un Drive condiviso",
-        "[6] Aggiorna i permessi di più Drive condivisi",
-        "[7] Visualizza gli utenti del dominio",
-        "[8] Disconnettiti",
-        "[9] Esci",
+        "[2] Visualizza gli elementi di uno o più Drive condivisi",
+        "[3] Visualizza i Drive condivisi con un utente/gruppo",
+        "[4] Visualizza i permessi di un Drive condiviso",
+        "[5] Aggiungi un permesso a un Drive condiviso",
+        "[6] Rimuovi un permesso a un Drive condiviso",
+        "[7] Aggiorna i permessi di più Drive condivisi",
+        "[8] Visualizza gli utenti del dominio",
+        "[9] Disconnettiti",
+        "[10] Esci",
     ]
     main_menu_cursor = "> "
     main_menu_cursor_style = ("fg_cyan", "bold")
@@ -77,15 +78,47 @@ def main():
                     with open(file_name, 'w') as file:
                         file.write("Id,Nome\n")
                         for drive in drives:
-                            print(drive)
                             id = drive.get('id', 'N/A')
                             name = drive.get('name', 'N/A')
                             file.write(f"{id},{name}\n")
                     print(f"Drive esportati in {file_name}")
                     input("\n\nPremi invio per continuare... ")
+
+            # Visualizzare gli elementi presenti in un drive condiviso
+            elif main_sel == 2:
+                
+                all_files = []
+                while True:
+                    folder_id = input("Inserisci l'ID del drive condiviso: ")
+                    if not folder_id:
+                        break
+                    files = utils.get_files_in_folder(drive_service, folder_id)
+                    all_files.extend(files)
+                
+                files_formatted = []
+                print(f"Elementi trovati: {len(all_files)}")
+                show_all = input("Vuoi visualizzare o esportare tutti gli elementi? [v/e] ")
+                if show_all == 'v':
+                    print()
+                    for element in all_files:
+                        id = element.get('id', 'N/A')
+                        name = element.get('name', 'N/A')
+                        files_formatted.append([id, name])
+                    print(tabulate(files_formatted, headers=['Id', 'Nome'], tablefmt="simple_grid"))
+                    input("\n\nPremi invio per continuare... ")
+                elif show_all == 'e':
+                    file_name = "elements.csv"
+                    with open(file_name, 'w') as file:
+                        file.write("Id,Nome\n")
+                        for element in all_files:
+                            id = element.get('id', 'N/A')
+                            name = element.get('name', 'N/A')
+                            file.write(f"{id},{name}\n")
+                    print(f"Drive esportati in {file_name}")
+                    input("\n\nPremi invio per continuare... ")
                     
             # Visualizzare i drive condivisi con un utente/gruppo
-            elif main_sel == 2:
+            elif main_sel == 3:
                 email = input("Inserisci l'email dell'utente/gruppo: ")
                 user_drives = utils.get_drives_shared_with_member(drive_service, email)
                 user_drives_formatted = []
@@ -101,7 +134,7 @@ def main():
                     input("\n\nPremi invio per continuare... ")
                     
             # Visualizzare i permessi di un drive condiviso
-            elif main_sel == 3:
+            elif main_sel == 4:
                 shared_drives = utils.get_all_drives(drive_service, True)
                 display_names = [f"{d['name']} [{d['id']}]" for d in shared_drives]
                 shared_drive_completer = WordCompleter(display_names, ignore_case=True)
@@ -128,7 +161,7 @@ def main():
                 input("\n\nPremi invio per continuare... ")
             
             # Aggiungere un permesso a un drive condiviso
-            elif main_sel == 4:
+            elif main_sel == 5:
                 drive_id = input("Inserisci l'ID del drive condiviso: ")
                 email = input("Inserisci l'email dell'utente/gruppo: ")
                 type = input("Inserisci il tipo di permesso: [user/group] ")
@@ -145,7 +178,7 @@ def main():
                 input("\n\nPremi invio per continuare... ")
             
             # Rimuovere un permesso a un drive condiviso
-            elif main_sel == 5:
+            elif main_sel == 6:
                 drive_id = input("Inserisci l'ID del drive condiviso: ")
                 permission_id = input("Inserisci l'ID del permesso da rimuovere: ")
                 print()
@@ -156,7 +189,7 @@ def main():
                 input("\n\nPremi invio per continuare... ")
             
             # Aggiornare i permessi di più drive condivisi
-            elif main_sel == 6:
+            elif main_sel == 7:
                 new_permissions = []
                 num_permissions = input("Quanti permessi vuoi aggiungere? ")
                 for i in range(int(num_permissions)):
@@ -213,7 +246,7 @@ def main():
                     input("\n\nPremi invio per continuare... ")
             
             # Visualizzare gli utenti del dominio
-            elif main_sel == 7:
+            elif main_sel == 8:
                 users = utils.get_all_users(directory_service)
                 users_formatted = []
                 print(f"Utenti trovati: {len(users)}")
@@ -243,12 +276,12 @@ def main():
                     print(f"Utenti esportati in {file_name}")
                     input("\n\nPremi invio per continuare... ")
                         
-            elif main_sel == 8:
+            elif main_sel == 9:
                 utils.delete_token()
                 utils.delete_data()
                 main_menu_exit = True
                 
-            elif main_sel == 9 or main_sel == None:
+            elif main_sel == 10 or main_sel == None:
                 main_menu_exit = True
             
       

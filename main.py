@@ -96,6 +96,7 @@ def main():
                     all_files.extend(files)
                 
                 files_formatted = []
+                print()
                 print(f"Elementi trovati: {len(all_files)}")
                 show_all = input("Vuoi visualizzare o esportare tutti gli elementi? [v/e] ")
                 if show_all == 'v':
